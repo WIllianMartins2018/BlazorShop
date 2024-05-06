@@ -1,0 +1,55 @@
+@page "/products/create"
+@rendermode InteractiveServer
+@inject ApplicationDbContext Context
+@inject NavigationManager Navigation
+
+<h1>Novo Produto</h1>
+<EditForm Model="@Model" OnValidSubmit="OnSubmitAsync">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Nome do Produto</label>
+        <InputText @bind-Value="Model.Title" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Preço do Produto</label>
+        <InputNumber @bind-Value="Model.Price" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Categoria</label>
+        <InputSelect @bind-Value="Model.CategoryId" class="form-control">
+            @foreach (var category in Categories)
+            {
+                <option value="@category.Id">
+                    @category.Title
+                </option>
+            }
+        </InputSelect>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Criar
+    </button>
+    <a href="/products">Cancelar</a>
+</EditForm>
+
+@code {
+    public Product Model { get; set; } = new();
+    public IEnumerable<Category> Categories { get; set; }
+    = Enumerable.Empty<Category>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Categories = await Context.Categories.AsNoTracking().OrderBy(c => c.Title).ToListAsync();
+    }
+
+    private async Task OnSubmitAsync()
+    {
+        await Context.Products.AddAsync(Model);
+        await Context.SaveChangesAsync();
+        Navigation.NavigateTo("products");
+    }
+}
